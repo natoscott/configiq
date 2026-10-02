@@ -39,3 +39,7 @@ Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Generated tested-model datasets and manifests
+data/tested-models/
+__pycache__/
