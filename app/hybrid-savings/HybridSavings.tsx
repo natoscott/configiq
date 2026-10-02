@@ -27,6 +27,7 @@ import { useSettings } from '@/contexts/SettingsContext'
 import type { RecommendResult } from '@/lib/api/recommend'
 import { readRecommendStream } from '@/lib/api/recommend-stream'
 import { useCatalog, type GpuOption, type ModelSpec } from '@/lib/hooks/useCatalog'
+import { useTestedModels } from '@/lib/hooks/useTestedModels'
 import {
   useCostings,
   type FrontierModel,
@@ -515,7 +516,6 @@ export default function HybridSavings() {
   const {
     hydrated,
     defaultModel,
-    testedModels,
     inferenceBackend,
     costingsEnabled,
     preferredCloudProvider,
@@ -528,6 +528,7 @@ export default function HybridSavings() {
     isLoading: catalogLoading,
     error: catalogError,
   } = useCatalog()
+  const { modelIds: testedModelIds } = useTestedModels()
   const costings = useCostings(costingsEnabled, pricingSource)
   const staleCostingSources = React.useMemo(
     () => Object.entries(costings.health?.sources ?? {})
@@ -993,7 +994,7 @@ export default function HybridSavings() {
                   )
                   const selectedPrice = pricing.selected
                   const selected = candidateId === model
-                  const isTestedModel = isModelListedAsTested(candidateId, testedModels)
+                              const isTestedModel = isModelListedAsTested(candidateId, testedModelIds)
                   return (
                     <Card
                       component="button"

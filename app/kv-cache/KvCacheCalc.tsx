@@ -6,6 +6,7 @@ import CheckCircleIcon from '@patternfly/react-icons/dist/esm/icons/check-circle
 import { formatBytes } from '@/lib/utils/format'
 import { useCountUp } from '@/app/predict/performanceHelpers'
 import { useCatalog } from '@/lib/hooks/useCatalog'
+import { useTestedModels } from '@/lib/hooks/useTestedModels'
 import { useSettings, type InferenceBackend } from '@/contexts/SettingsContext'
 import { getAppConfig } from '@/lib/app-config'
 import { ModelInput, type ModelStatus } from '@/components/ui/ModelInput';
@@ -64,6 +65,7 @@ function invalidPhaseParallel(p: PhaseParallelInput): boolean {
 export default function KvCacheCalc() {
   const { hydrated, hfToken, defaultModel: settingsDefaultModel, inferenceBackend, backendVersion: settingsBackendVersion } = useSettings()
   const { modelOptions: catalogModels, gpuOptions: catalogGpus, backendOptions, isLoading: catalogLoading } = useCatalog()
+  const { modelIds: testedModelIds, isAvailable: testedModelsAvailable } = useTestedModels()
   const MODEL_OPTIONS = catalogModels
 
   const [model, setModel] = React.useState('')
@@ -173,7 +175,7 @@ export default function KvCacheCalc() {
   };
 
   const catalogMatch = MODEL_OPTIONS.includes(model)
-  const kvModelStatus: ModelStatus = getAppConfig().testedModels.includes(model)
+  const kvModelStatus: ModelStatus = testedModelIds.includes(model)
     ? 'supported'
     : catalogMatch ? 'catalog'
     : catalogLoading ? 'fetching'
@@ -275,7 +277,7 @@ export default function KvCacheCalc() {
               items={modelItems}
               placeholder="Type model name or select from dropdown..."
               allowCustom
-              supportedModels={getAppConfig().testedModels}
+              supportedModels={testedModelsAvailable ? testedModelIds : undefined}
             />
           </div>
 
