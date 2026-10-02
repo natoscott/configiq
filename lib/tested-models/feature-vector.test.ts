@@ -50,7 +50,7 @@ const input: CanonicalClassifierInput = {
 describe('buildFeatureVector', () => {
   it('uses the recorded feature order and derived values', () => {
     const vector = buildFeatureVector(input, {
-      feature_names: ['model_id=org/model', 'system_id=h200_sxm', 'backend=vllm', 'version=vLLM-0.24.0', 'accelerator=H200', 'tp', 'memory_pressure', 'prefix_caching', 'unseen_numeric'],
+      feature_names: ['model_id=org/model', 'system_id=h200_sxm', 'backend=vllm', 'version=0.24.0', 'accelerator=H200', 'tp', 'memory_pressure', 'prefix_caching', 'unseen_numeric'],
       numeric_medians: { unseen_numeric: 7 },
     })
 

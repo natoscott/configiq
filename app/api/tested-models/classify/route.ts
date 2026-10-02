@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     if (!response.ok) throw new Error(`Triton returned ${response.status}`)
     const result = await response.json() as { outputs?: Array<{ data?: unknown[] }> }
     const data = result.outputs?.[0]?.data
-    const probability = Array.isArray(data) && typeof data[1] === 'number' ? data[1] : null
+    const probability = Array.isArray(data) && typeof data[0] === 'number' ? data[0] : null
     if (probability == null || !Number.isFinite(probability)) throw new Error('Triton returned no within-region probability')
 
     return NextResponse.json({

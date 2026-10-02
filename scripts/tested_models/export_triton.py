@@ -27,16 +27,18 @@ def main() -> int:
         model_repository = args.repository_dir / pair
         version_dir = model_repository / "1"
         version_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(model_path, version_dir / "model.json")
+        shutil.copy2(model_path, version_dir / "xgboost.json")
         config = model_repository / "config.pbtxt"
         config.write_text(f'''name: "{pair}"
-platform: "fil"
-max_batch_size: 0
+backend: "fil"
+max_batch_size: 32768
+default_model_filename: "xgboost.json"
 input [{{ name: "input__0" data_type: TYPE_FP32 dims: [ {feature_count} ] }}]
-output [{{ name: "output__0" data_type: TYPE_FP32 dims: [ 2 ] }}]
-instance_group [{{ kind: KIND_CPU count: 1 }}]
+output [{{ name: "output__0" data_type: TYPE_FP32 dims: [ 1 ] }}]
+instance_group [{{ kind: KIND_AUTO }}]
 parameters: {{ key: "model_type" value: {{ string_value: "xgboost_json" }} }}
-parameters: {{ key: "predict_proba" value: {{ string_value: "true" }} }}
+parameters: {{ key: "is_classifier" value: {{ string_value: "true" }} }}
+dynamic_batching {{}}
 ''')
         count += 1
     print(f"validated and wrote {count} Triton FIL configs")

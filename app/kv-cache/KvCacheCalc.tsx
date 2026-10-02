@@ -64,7 +64,7 @@ function invalidPhaseParallel(p: PhaseParallelInput): boolean {
 
 export default function KvCacheCalc() {
   const { hydrated, hfToken, defaultModel: settingsDefaultModel, inferenceBackend, backendVersion: settingsBackendVersion } = useSettings()
-  const { modelOptions: catalogModels, gpuOptions: catalogGpus, backendOptions, isLoading: catalogLoading } = useCatalog()
+  const { modelOptions: catalogModels, gpuOptions: catalogGpus, modelSpecs, backendOptions, isLoading: catalogLoading } = useCatalog()
   const { modelIds: testedModelIds, isAvailable: testedModelsAvailable } = useTestedModels()
   const MODEL_OPTIONS = catalogModels
 
@@ -134,7 +134,7 @@ export default function KvCacheCalc() {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrated gates config.json readiness
-  const modelItems: ComboBoxItem[] = React.useMemo(() => buildModelItems(catalogModels), [catalogModels, hydrated]);
+  const modelItems: ComboBoxItem[] = React.useMemo(() => buildModelItems(catalogModels, testedModelIds, modelSpecs), [catalogModels, testedModelIds, modelSpecs, hydrated]);
 
   // HF config for models AISimulators can't resolve from its catalog (incl. tested models
   // outside the catalog). Fetched on model change, sent to /api/memory on calc.

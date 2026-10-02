@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
+from build_registry import system_id
 from xgboost import XGBClassifier
 
 
@@ -62,7 +63,7 @@ def build_dashboard(manifest_path: Path, labeled_dir: Path, model_dir: Path, out
             "generatedAt": datetime.now(UTC).isoformat(),
             "id": pair_id,
             "modelId": pair["model_id"],
-            "systemId": pair["accelerator"].lower(),
+            "systemId": system_id(pair["accelerator"]),
             "records": len(frame),
             "labelDistribution": {
                 "within": int(frame["within_tested_region"].sum()),

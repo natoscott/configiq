@@ -57,6 +57,9 @@ export interface ClassifierEffectiveConfiguration {
   prefix_caching_enabled: boolean | null
   weight_precision: string | null
   kv_cache_precision: string | null
+  dtype?: string | null
+  gemm_quant_mode?: string | null
+  kvcache_quant_mode?: string | null
   moe_quant_mode: string | null
   gpu_memory_utilization: number | null
   max_num_seqs: number | null

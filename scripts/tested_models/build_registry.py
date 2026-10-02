@@ -47,7 +47,7 @@ def build_registry(manifest_path: Path, model_dir: Path, triton_dir: Path, outpu
             raise ValueError(f"trained pair is absent from dataset manifest: {pair_id}")
         model_path = model_dir / f"{pair_id}.json"
         metadata_path = model_dir / f"{pair_id}.metadata.json"
-        triton_path = triton_dir / pair_id / "1" / "model.json"
+        triton_path = triton_dir / pair_id / "1" / "xgboost.json"
         config_path = triton_dir / pair_id / "config.pbtxt"
         for path in (model_path, metadata_path, triton_path, config_path):
             if not path.exists():

@@ -43,17 +43,7 @@ def discover(config: Path, api_url: str, accelerators: list[str], output: Path, 
     session = requests.Session()
 
     for model_id in models:
-        try:
-            rows = fetch_rows(session, api_url, model_id, verify=not insecure)
-        except requests.HTTPError as exc:
-            print(f"request_error {model_id}: HTTP {exc.response.status_code if exc.response is not None else 'error'}")
-            continue
-        except requests.RequestException:
-            print(f"request_error {model_id}: request failed")
-            continue
-        except ValueError:
-            print(f"invalid_source_data {model_id}")
-            continue
+        rows = fetch_rows(session, api_url, model_id, verify=not insecure)
 
         grouped: dict[str, list[dict]] = {}
         for row in rows:

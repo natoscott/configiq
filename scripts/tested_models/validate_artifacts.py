@@ -30,9 +30,17 @@ def main() -> int:
         if pair.get("classifier") != "xgboost":
             raise ValueError(f"unsupported classifier: {pair_id}")
         model_dir = args.triton_dir / pair_id
-        for path in (model_dir / "config.pbtxt", model_dir / "1" / "model.json"):
+        config_path = model_dir / "config.pbtxt"
+        model_path = model_dir / "1" / "xgboost.json"
+        for path in (config_path, model_path):
             if not path.is_file():
                 raise FileNotFoundError(path)
+        config = config_path.read_text()
+        feature_count = len(pair.get("featureSchema", {}).get("feature_names", []))
+        if 'backend: "fil"' not in config or 'is_classifier' not in config:
+            raise ValueError(f"invalid FIL config: {config_path}")
+        if f"dims: [ {feature_count} ]" not in config:
+            raise ValueError(f"FIL input dimension does not match feature schema: {config_path}")
 
     print(f"validated {len(ids)} tested-model Triton artifacts")
     return 0

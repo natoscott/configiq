@@ -76,11 +76,10 @@ def label_pair(train: pd.DataFrame, validation: pd.DataFrame, test: pd.DataFrame
         failure = errors | (successful.notna() & (successful <= 0)) | current_throughput.isna()
         z_score = (current_efficiency - median_efficiency) / max(efficiency_std, 1e-12)
         flags = {"failure": failure, "efficiency": z_score < -1.5, "conservative_margin": current_efficiency < 0.85 * median_efficiency, "latency": current_latency > 3 * latency_baseline if latency_baseline is not None else pd.Series(False, index=frame.index)}
-        if is_train:
-            local_curvature = curvature
-        else:
-            # No test/validation measurements participate in fitting the knee threshold.
-            local_curvature = pd.Series(0.0, index=frame.index)
+        # Curvature is computed within each split, but its threshold is fitted only
+        # from training rows. This labels held-out points using the same rule without
+        # allowing held-out data to tune the threshold.
+        local_curvature = _curvature(frame)
         flags["knee"] = local_curvature > curvature_threshold if curvature_threshold is not None else pd.Series(False, index=frame.index)
         result["label_failure"] = flags["failure"].astype(int)
         result["label_efficiency"] = flags["efficiency"].astype(int)

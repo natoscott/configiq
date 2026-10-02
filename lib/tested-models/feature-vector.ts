@@ -18,23 +18,26 @@ function systemFamily(systemId: string): string {
   return systemId
 }
 
-function backendVersionLabel(effective: ClassifierEffectiveConfiguration): string {
-  if (!effective.backend_version) return 'unknown'
-  const backend = effective.backend.toLowerCase()
-  const prefix = backend === 'vllm' ? 'vLLM'
-    : backend === 'trt-llm' ? 'TRT-LLM'
-      : backend === 'rhaiis' ? 'RHAIIS'
-        : backend === 'sglang' ? 'sglang'
-          : effective.backend
-  return `${prefix}-${effective.backend_version}`
-}
-
 function modelConfigNumber(config: Record<string, unknown> | null, keys: string[]): number | null {
   for (const key of keys) {
     const value = config?.[key]
     if (typeof value === 'number' && Number.isFinite(value)) return value
+    const nested = config?.text_config
+    if (nested && typeof nested === 'object') {
+      const nestedValue = (nested as Record<string, unknown>)[key]
+      if (typeof nestedValue === 'number' && Number.isFinite(nestedValue)) return nestedValue
+    }
   }
   return null
+}
+
+function dtypeValue(effective: ClassifierEffectiveConfiguration): string {
+  const value = effective.dtype ?? effective.weight_precision
+  if (!value) return 'unknown'
+  const normalized = value.toLowerCase()
+  if (normalized === 'fp16' || normalized === 'float16' || normalized === 'bfloat16' || normalized === 'bf16') return 'float16'
+  if (normalized === 'fp8') return 'fp8'
+  return value
 }
 
 export function buildFeatureValues(input: CanonicalClassifierInput): Record<string, string | number> {
@@ -49,6 +52,7 @@ export function buildFeatureValues(input: CanonicalClassifierInput): Record<stri
   const osl = effective.osl || 0
   const concurrency = effective.concurrency || 0
   const sharedPrefix = effective.shared_prefix_tokens || 0
+  const unknown = Number.NaN
   const parallelism = tp * pp * dp * ep * cp
   const tokenBudget = (isl + osl) * Math.max(concurrency, 1)
 
@@ -56,12 +60,12 @@ export function buildFeatureValues(input: CanonicalClassifierInput): Record<stri
     model_id: effective.model_id,
     system_id: effective.system_id,
     backend: effective.backend,
-    version: backendVersionLabel(effective),
+    version: effective.backend_version ?? 'unknown',
     accelerator: systemFamily(effective.system_id),
     request_type: 'unknown',
-    precision: effective.weight_precision ?? 'unknown',
-    weight_quantization: effective.weight_precision ?? 'unknown',
-    kv_quantization: effective.kv_cache_precision ?? 'unknown',
+    precision: dtypeValue(effective),
+    weight_quantization: effective.gemm_quant_mode ?? 'unknown',
+    kv_quantization: effective.kvcache_quant_mode ?? 'unknown',
     tp,
     pp,
     dp,
@@ -71,11 +75,11 @@ export function buildFeatureValues(input: CanonicalClassifierInput): Record<stri
     osl,
     concurrency,
     prefix_tokens: sharedPrefix,
-    prefix_count: 0,
-    prefix_caching: effective.prefix_caching_enabled == null ? 0 : Number(effective.prefix_caching_enabled),
+    prefix_count: unknown,
+    prefix_caching: effective.prefix_caching_enabled == null ? unknown : Number(effective.prefix_caching_enabled),
     shared_prefix: sharedPrefix,
-    moe_num_experts: modelConfigNumber(modelConfig, ['num_experts', 'num_local_experts']) ?? 0,
-    moe_top_k: modelConfigNumber(modelConfig, ['num_experts_per_tok', 'num_selected_experts']) ?? 0,
+    moe_num_experts: modelConfigNumber(modelConfig, ['num_experts', 'num_local_experts']) ?? unknown,
+    moe_top_k: modelConfigNumber(modelConfig, ['num_experts_per_tok', 'num_selected_experts']) ?? unknown,
     token_budget: tokenBudget,
     parallelism,
     memory_pressure: tokenBudget / Math.max(parallelism, 1),

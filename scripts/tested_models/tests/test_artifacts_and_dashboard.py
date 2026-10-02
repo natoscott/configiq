@@ -33,8 +33,8 @@ def test_registry_build_and_artifact_validation_require_complete_bundle(tmp_path
     (model_dir / "model__h200.json").write_text("{}")
     (model_dir / "model__h200.metadata.json").write_text("{}")
     (triton_dir / "model__h200" / "1").mkdir(parents=True)
-    (triton_dir / "model__h200" / "1" / "model.json").write_text("{}")
-    (triton_dir / "model__h200" / "config.pbtxt").write_text("name: model__h200")
+    (triton_dir / "model__h200" / "1" / "xgboost.json").write_text("{}")
+    (triton_dir / "model__h200" / "config.pbtxt").write_text('backend: "fil"\ninput [ { dims: [ 1 ] } ]\nparameters: { key: "is_classifier" value: { string_value: "true" } }')
     dashboard_dir.mkdir()
     (dashboard_dir / "model__h200.json").write_text("{}")
 

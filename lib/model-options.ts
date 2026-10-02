@@ -1,5 +1,7 @@
 import type { ComboBoxItem } from '@/components/ModelComboBox/ModelComboBox'
+import type { ModelSpec } from '@/lib/hooks/useCatalog'
 import { getAppConfig } from '@/lib/app-config'
+import { modelFacets } from '@/lib/model-metadata'
 
 /**
  * Build the model dropdown items from the three model sources, deduped:
@@ -11,8 +13,13 @@ import { getAppConfig } from '@/lib/app-config'
  * and the badge is chosen by priority (tested > catalog > hugging face) at
  * render time. Order: catalog first, then tested-not-in-catalog, then any
  * remaining HF-listed models.
+ *
+ * Each item also carries its derived facets (vendor, family, parameter count,
+ * quantization, type) so the combo box can search and label on them. `specs`
+ * is optional: models outside the catalog have no spec, and every facet
+ * degrades to an ID-derived value or null without one.
  */
-export function buildModelItems(catalogModels: string[], testedModelIds?: string[]): ComboBoxItem[] {
+export function buildModelItems(catalogModels: string[], testedModelIds?: string[], specs?: Map<string, ModelSpec>): ComboBoxItem[] {
   const config = getAppConfig()
   const catalog = new Set(catalogModels)
   const testedValues = testedModelIds ?? []
@@ -26,12 +33,15 @@ export function buildModelItems(catalogModels: string[], testedModelIds?: string
     seen.add(m)
     const slash = m.indexOf('/')
     items.push({
+      ...modelFacets(m, {
+        spec: specs?.get(m),
+        testedModels: testedValues,
+        catalogModels: catalog,
+        huggingFaceModels: config.huggingFaceModels,
+      }),
       value: m,
       label: m,
       group: slash > 0 ? m.slice(0, slash) : '',
-      isTested: tested.has(m),
-      inCatalog: catalog.has(m),
-      isHuggingFace: hf.has(m),
     })
   }
   return items

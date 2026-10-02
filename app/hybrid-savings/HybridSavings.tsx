@@ -61,7 +61,9 @@ import {
   modelParameterBillions,
   modelSizeLabel,
   modelTierLabel,
-} from '@/lib/hybrid-savings/model-catalogue'
+  modelTypeLabel,
+  normalizeModelId,
+} from '@/lib/model-metadata'
 import styles from './hybrid-savings.module.css'
 
 const CostComparisonChart = dynamic(() => import('./CostComparisonChart'), {
@@ -200,12 +202,6 @@ function preciseRate(value: number): string {
   return value.toPrecision(3)
 }
 
-function modelTypeLabel(spec: ModelSpec | undefined): string {
-  if (spec?.num_experts && spec.num_experts > 1) return 'Mixture of experts'
-  if (spec?.architecture?.toLowerCase().includes('conditionalgeneration')) return 'Multimodal'
-  return 'Dense model'
-}
-
 function modelSummary(modelId: string, spec: ModelSpec | undefined): string {
   const organization = modelId.includes('/') ? modelId.split('/')[0] : 'the catalogue provider'
   if (spec?.num_experts && spec.num_experts > 1) {
@@ -222,10 +218,6 @@ function formatMonthlyUsage(value: number): string {
   if (value >= 1_000) return `$${compactNumber(value)}/mo`
   if (value >= 1) return `${currencyFormatter.format(value)}/mo`
   return `${preciseCurrencyFormatter.format(value)}/mo`
-}
-
-function normalizeModelId(value: string): string {
-  return value.trim().toLowerCase()
 }
 
 function hostedProviderLabel(value: string): string {

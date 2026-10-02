@@ -52,6 +52,8 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"seed": args.seed, "pairs": {}}
     label_rules = json.loads((args.labeled_dir / "label-rules.json").read_text())
+    split_summary_path = args.labeled_dir.parent / "splits" / "split-summary.json"
+    split_summary = json.loads(split_summary_path.read_text()) if split_summary_path.exists() else {"pairs": {}}
     for source in read_manifest(args.manifest):
         pair = str(source["pair_id"].iloc[0])
         frames = {split: pd.read_parquet(args.labeled_dir / f"{pair}.{split}.parquet") for split in ("train", "validation", "test")}
@@ -59,6 +61,11 @@ def main() -> int:
         y_train, y_validation, y_test = (frames[split][target].astype(int) for split in ("train", "validation", "test"))
         pair_report: dict[str, Any] = {"split_counts": {split: {"rows": len(frame), "positive": int(frame[target].sum()), "negative": int((frame[target] == 0).sum())} for split, frame in frames.items()}}
         pair_report["warnings"] = []
+        if split_summary["pairs"].get(pair, {}).get("status") == "insufficient_groups":
+            pair_report["status"] = "skipped_insufficient_groups"
+            pair_report["warnings"].append("too_few_configuration_groups_for_holdout_splits")
+            report["pairs"][pair] = pair_report
+            continue
         if y_validation.nunique() < 2:
             pair_report["warnings"].append("validation_single_class")
         if y_test.nunique() < 2:

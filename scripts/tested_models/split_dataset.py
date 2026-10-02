@@ -25,13 +25,18 @@ def main() -> int:
         frame = frame.copy()
         frame["configuration_group"] = configuration_group(frame)
         groups = sorted(frame["configuration_group"].unique())
-        # Hash ordering makes assignment independent of parquet row order.
-        groups = sorted(groups, key=lambda group: (hashlib.sha256(f"{args.seed}|{pair}|{group}".encode()).hexdigest(), group))
-        assignments = {group: ("test" if index % 10 < 2 else "validation" if index % 10 < 4 else "train") for index, group in enumerate(groups)}
+        if len(groups) <= 4:
+            assignments = {group: "train" for group in groups}
+            split_status = "insufficient_groups"
+        else:
+            # Hash ordering makes assignment independent of parquet row order.
+            groups = sorted(groups, key=lambda group: (hashlib.sha256(f"{args.seed}|{pair}|{group}".encode()).hexdigest(), group))
+            assignments = {group: ("test" if index % 10 < 2 else "validation" if index % 10 < 4 else "train") for index, group in enumerate(groups)}
+            split_status = "ok"
         frame["split"] = frame["configuration_group"].map(assignments)
         for split in ("train", "validation", "test"):
             frame[frame["split"] == split].to_parquet(output / f"{pair}.{split}.parquet", index=False)
-        summary["pairs"][pair] = {"rows": len(frame), "groups": len(groups), "counts": frame["split"].value_counts().to_dict()}
+        summary["pairs"][pair] = {"rows": len(frame), "groups": len(groups), "status": split_status, "counts": frame["split"].value_counts().to_dict()}
     (output / "split-summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0

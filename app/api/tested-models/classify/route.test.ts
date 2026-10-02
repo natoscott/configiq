@@ -37,7 +37,7 @@ afterEach(() => {
 describe('POST /api/tested-models/classify', () => {
   it('maps Triton class probabilities using the strict production threshold', async () => {
     mockReadFile.mockResolvedValue(JSON.stringify(registry) as never)
-    const fetchMock = vi.fn(() => Promise.resolve(Response.json({ outputs: [{ data: [0.2, 0.8] }] })))
+    const fetchMock = vi.fn(() => Promise.resolve(Response.json({ outputs: [{ data: [0.8] }] })))
     vi.stubGlobal('fetch', fetchMock)
 
     const response = await POST(new Request('http://localhost/api/tested-models/classify', { method: 'POST', body: JSON.stringify(input) }))
