@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import ComingSoonRibbon from '@/components/ComingSoonRibbon/ComingSoonRibbon'
 import styles from './cluster-cost.module.css'
 import { fetchAllProviders, getEffectiveRate, loadUserOverrides, setUserOverride, clearUserOverride, loadSelectedGpus, saveSelectedGpu, type Provider } from '@/lib/pricing/providerPricing'
 import { useCostings, resolveCloudRate, type CostingsData } from '@/lib/hooks/useCostings'
@@ -799,7 +798,7 @@ export default function ClusterCostPage() {
   ]
 
   return (
-    <ComingSoonRibbon>
+    <>
     <div style={{ padding: '16px 24px 0' }}>
       <h1 style={{ fontFamily: 'var(--display, sans-serif)', fontSize: 30, fontWeight: 700, letterSpacing: '-0.01em', margin: '8px 0 4px' }}>Cluster cost</h1>
     </div>
@@ -1594,6 +1593,6 @@ export default function ClusterCostPage() {
         {toast && <div className={styles.toast}>✓ {toast}</div>}
       </div>
     </div>
-    </ComingSoonRibbon>
+    </>
   )
 }
